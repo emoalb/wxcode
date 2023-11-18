@@ -5,7 +5,7 @@ PROG = image_viewer
 
 OPENCV = `pkg-config opencv4 --cflags --libs`
 WXCONFIG = `wx-config --cxxflags --libs --gl-libs`
-OPENGL = -lGL -lGLU -lglut
+OPENGL = -lGL -lGLU -lglut -lGLEW
 LIBS = $(OPENCV) $(WXCONFIG) $(OPENGL)
 
 all: main

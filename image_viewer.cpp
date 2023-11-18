@@ -11,14 +11,14 @@ class ImageViewerFrame : public wxFrame
 private:
     wxStaticBitmap* imageCtrl;
     std::stack<wxImage> imageStack;
-   
+   wxString currentFilePath;
 
     void ShowAboutDialog(wxCommandEvent& event)
 {
     AboutDialog* aboutDialog= new AboutDialog (this, wxID_ANY, wxT("About Image Viewer"));
     aboutDialog->CenterOnParent();
     aboutDialog->ShowModal();
-    delete aboutDialog;
+  delete aboutDialog;
 
 }
     void OnOpen(wxCommandEvent& event)
@@ -30,12 +30,44 @@ private:
             cv::Mat image = cv::imread(std::string(filepath.mb_str()));
             if (!image.empty())
             {
-                wxBitmap bitmap = wxBitmap(wxImage(image.cols, image.rows, image.data, true));
+               
+                wxBitmap bitmap = wxBitmap( wxImage(image.cols, image.rows, image.data, true));
                 imageCtrl->SetBitmap(bitmap);
+                wxImage img =   imageCtrl->GetBitmap().ConvertToImage();
+                imageStack.push(img);
             }
         }
     }
+ void OnSave(wxCommandEvent& event)
+{
+    if (!imageCtrl->GetBitmap().IsOk())
+        return;
 
+    wxFileDialog saveDialog(this, "Save Image", "", "", "BMP files (*.bmp)|*.bmp|JPEG files (*.jpg)|*.jpg|PNG files (*.png)|*.png", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+    if (saveDialog.ShowModal() == wxID_CANCEL)
+        return;
+
+    wxString filePath = saveDialog.GetPath();
+    wxString fileType = saveDialog.GetWildcard();
+    
+    wxImage image = imageCtrl->GetBitmap().ConvertToImage();
+    if (fileType.Contains("BMP"))
+    {
+         filePath.append(".bmp");
+        image.SaveFile(filePath, wxBITMAP_TYPE_BMP);
+    }
+    else if (fileType.Contains("JPEG"))
+    {
+         filePath.append(".jpeg");
+        image.SaveFile(filePath, wxBITMAP_TYPE_JPEG);
+    }
+    else if (fileType.Contains("PNG"))
+    {
+         filePath.append(".png");
+        image.SaveFile(filePath, wxBITMAP_TYPE_PNG);
+    }
+}
     void OnExit(wxCommandEvent& event)
     {
         Close();
@@ -57,7 +89,7 @@ private:
     }
     void UndoLastEffect(wxCommandEvent& event)
     {
-    if (imageStack.size() >= 2) {
+    if (imageStack.size() >1) {
         imageStack.pop(); // Remove the current image
         wxImage lastImage = imageStack.top(); // Get the previous image
         wxBitmap bitmap = wxBitmap(lastImage);
@@ -68,41 +100,29 @@ private:
     // Image effect functions
     void ApplyGrayscaleEffect()
     {
-    //   if (!imageCtrl->GetBitmap().IsOk())
-    //    return;
-    //   wxImage image = imageCtrl->GetBitmap().ConvertToImage();
-    //    cv::Mat cvImage = wxImageToCvMat(image);
-    //     cv::cvtColor(cvImage, cvImage, cv::COLOR_BGR2GRAY);
-
-   //     wxBitmap bitmap = wxBitmap(wxImage(cvImage.cols, cvImage.rows, cvImage.data, true));
-     //   imageCtrl->SetBitmap(bitmap);
-
         if (!imageCtrl->GetBitmap().IsOk())
         return;
 
            wxImage image = imageCtrl->GetBitmap().ConvertToImage();
-    
+             int width = image.GetWidth();
+             int height = image.GetHeight();
+             imageStack.push(image);
+             wxImage grayscaleImage(width, height);
 
-
-
-    int width = image.GetWidth();
-    int height = image.GetHeight();
-    wxImage grayscaleImage(width, height);
-
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
             wxColour color = image.GetRed(x, y);
             unsigned char grayValue = (color.Red() + color.Green() + color.Blue()) / 3;
             grayscaleImage.SetRGB(x, y, grayValue, grayValue, grayValue);
-        }
+         }
     }
 
     wxBitmap bitmap = wxBitmap(grayscaleImage);
     imageCtrl->SetBitmap(bitmap);
-          imageStack.push(image);
+          
 
     // Keep only the last 4 states in the stack
-    while (imageStack.size() > 4)
+    while (imageStack.size() > 20)
     {
         imageStack.pop();
     }
@@ -113,18 +133,16 @@ private:
         if (!imageCtrl->GetBitmap().IsOk())
             return;
 
-   
-         wxImage image = imageCtrl->GetBitmap().ConvertToImage();
-         
+        wxImage image = imageCtrl->GetBitmap().ConvertToImage();
+        imageStack.push(image);
         cv::Mat cvImage = wxImageToCvMat(image);
         cv::GaussianBlur(cvImage, cvImage, cv::Size(5, 5), 0);
 
         wxBitmap bitmap = wxBitmap(wxImage(cvImage.cols, cvImage.rows, cvImage.data, true));
-        imageCtrl->SetBitmap(bitmap);
-        imageStack.push(image);
+        imageCtrl->SetBitmap(bitmap);  
 
     // Keep only the last 4 states in the stack
-    while (imageStack.size() > 4)
+    while (imageStack.size() > 20)
     {
         imageStack.pop();
     }
@@ -142,6 +160,7 @@ private:
     {
         wxMenu* fileMenu = new wxMenu;
         fileMenu->Append(wxID_OPEN, wxT("Open"));
+        fileMenu->Append(wxID_SAVE, wxT("Save"));
         fileMenu->Append(wxID_EXIT, wxT("Exit"));
         wxMenuBar* menuBar = new wxMenuBar;
         menuBar->Append(fileMenu, wxT("File"));
@@ -149,10 +168,10 @@ private:
         effectsMenu->Append(ID_EFFECT_GRAYSCALE, wxT("Grayscale"));
         effectsMenu->Append(ID_EFFECT_BLUR, wxT("Blur"));
         effectsMenu->Append(ID_EFFECT_UNDO, wxT("Undo"));
-        wxMenu* helpMenu = new wxMenu;
-        helpMenu->Append(ID_ABOUT, wxT("About"));
-        menuBar->Append(helpMenu, wxT("Help"));
+        wxMenu* helpMenu = new wxMenu;       
         menuBar->Append(effectsMenu, wxT("Effects"));
+         helpMenu->Append(ID_ABOUT, wxT("About"));
+        menuBar->Append(helpMenu, wxT("Help"));
         SetMenuBar(menuBar);
        
        
@@ -163,7 +182,7 @@ private:
         wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
         sizer->Add(imageCtrl, 1, wxEXPAND);
         panel->SetSizerAndFit(sizer);
-
+        Bind(wxEVT_MENU, &ImageViewerFrame::OnSave, this, wxID_SAVE);
         Bind(wxEVT_MENU, &ImageViewerFrame::OnOpen, this, wxID_OPEN);
         Bind(wxEVT_MENU, &ImageViewerFrame::OnExit, this, wxID_EXIT);
         Bind(wxEVT_MENU, &ImageViewerFrame::OnGrayscale, this, ID_EFFECT_GRAYSCALE);
