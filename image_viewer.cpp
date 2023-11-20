@@ -1,19 +1,10 @@
-#include <stack>
-#include <wx/wx.h>
-#include <opencv2/opencv.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <iostream>
+#include "image_viewer.h"
 #include "about_dialog.h"
-class ImageViewerFrame : public wxFrame
-{
 
 
-private:
-    wxStaticBitmap* imageCtrl;
-    std::stack<wxImage> imageStack;
-   wxString currentFilePath;
 
-    void ShowAboutDialog(wxCommandEvent& event)
+
+    void ImageViewerFrame ::ShowAboutDialog(wxCommandEvent& event)
 {
     AboutDialog* aboutDialog= new AboutDialog (this, wxID_ANY, wxT("About Image Viewer"));
     aboutDialog->CenterOnParent();
@@ -21,7 +12,7 @@ private:
   delete aboutDialog;
 
 }
-    void OnOpen(wxCommandEvent& event)
+    void ImageViewerFrame ::OnOpen(wxCommandEvent& event)
     {
         wxString filepath = wxFileSelector(wxT("Choose an image to open"), wxEmptyString, wxEmptyString, wxEmptyString, wxT("Image files (*.bmp;*.jpg;*.jpeg)|*.bmp;*.jpg;*.jpeg"));
 
@@ -38,7 +29,7 @@ private:
             }
         }
     }
- void OnSave(wxCommandEvent& event)
+ void ImageViewerFrame ::OnSave(wxCommandEvent& event)
 {
     if (!imageCtrl->GetBitmap().IsOk())
         return;
@@ -68,7 +59,7 @@ private:
         image.SaveFile(filePath, wxBITMAP_TYPE_PNG);
     }
 }
-    void OnExit(wxCommandEvent& event)
+    void ImageViewerFrame ::OnExit(wxCommandEvent& event)
     {
         Close();
     }
@@ -78,16 +69,16 @@ private:
     static const int ID_EFFECT_UNDO = 100;
     static const int ID_ABOUT = 103;
     // Menu event handlers
-    void OnGrayscale(wxCommandEvent& event)
+    void ImageViewerFrame ::OnGrayscale(wxCommandEvent& event)
     {
         ApplyGrayscaleEffect();
     }
 
-    void OnBlur(wxCommandEvent& event)
+    void ImageViewerFrame ::OnBlur(wxCommandEvent& event)
     {
         ApplyBlurEffect();
     }
-    void UndoLastEffect(wxCommandEvent& event)
+    void ImageViewerFrame ::UndoLastEffect(wxCommandEvent& event)
     {
     if (imageStack.size() >1) {
         imageStack.pop(); // Remove the current image
@@ -98,7 +89,7 @@ private:
     }
 
     // Image effect functions
-    void ApplyGrayscaleEffect()
+    void ImageViewerFrame ::ApplyGrayscaleEffect()
     {
         if (!imageCtrl->GetBitmap().IsOk())
         return;
@@ -128,7 +119,7 @@ private:
     }
     }
 
-    void ApplyBlurEffect()
+    void ImageViewerFrame ::ApplyBlurEffect()
     {
         if (!imageCtrl->GetBitmap().IsOk())
             return;
@@ -148,14 +139,14 @@ private:
     }
     }
 
-    cv::Mat wxImageToCvMat(const wxImage& image)
+    cv::Mat ImageViewerFrame ::wxImageToCvMat(const wxImage& image)
     {
         wxImage::RGBValue* data =(wxImage::RGBValue*) image.GetData();
         return cv::Mat(image.GetHeight(), image.GetWidth(), CV_8UC3, data);
     }
 
-    public:
-    ImageViewerFrame(const wxString& title)
+
+  ImageViewerFrame ::ImageViewerFrame(const wxString& title)
         : wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(800, 600))
     {
         wxMenu* fileMenu = new wxMenu;
@@ -190,7 +181,7 @@ private:
         Bind(wxEVT_MENU, &ImageViewerFrame::UndoLastEffect, this, ID_EFFECT_UNDO);
         Bind(wxEVT_MENU, &ImageViewerFrame::ShowAboutDialog, this, ID_ABOUT);
     }
-};
+
 //cv::Mat wxImageToCvMat(const wxImage& image)
 //{
  //   const unsigned char* data = image.GetData();

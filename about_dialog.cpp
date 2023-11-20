@@ -1,6 +1,6 @@
 #include "about_dialog.h"
 #include <iostream>
-
+#include"cube.h"
 AboutDialog::AboutDialog(wxWindow* parent, wxWindowID id, const wxString& title)
     : wxDialog(parent, id, title, wxDefaultPosition, wxSize(400, 400))
 {
@@ -145,44 +145,6 @@ int AboutDialog::getHeight()
 
 void AboutDialog::OnOpenGLPaint(wxPaintEvent& event)
 {
-GLfloat vertices[] = {
-    // Vertices of the cube
-    -1.0f, -1.0f, 1.0f,    // Vertex 0
-     1.0f, -1.0f, 1.0f,    // Vertex 1
-     1.0f,  1.0f, 1.0f,    // Vertex 2
-    -1.0f,  1.0f, 1.0f,    // Vertex 3
-    -1.0f, -1.0f, -1.0f,   // Vertex 4
-     1.0f, -1.0f, -1.0f,   // Vertex 5
-     1.0f,  1.0f, -1.0f,   // Vertex 6
-    -1.0f,  1.0f, -1.0f    // Vertex 7
-};
-
-// Define indices for rendering triangles
-GLuint indices[] = {
-    0, 1, 2,   // Front face
-    0, 2, 3,   // Front face
-    4, 5, 6,   // Back face
-    4, 6, 7,   // Back face
-    0, 4, 7,   // Left face
-    0, 7, 3,   // Left face
-    1, 5, 6,   // Right face
-    1, 6, 2,   // Right face
-    3, 2, 6,   // Top face
-    3, 6, 7,   // Top face
-    0, 1, 5,   // Bottom face
-    0, 5, 4    // Bottom face
-};
-GLfloat colors[] = {
-    // Colors for each vertex
-    1.0f, 0.0f, 0.0f,  // Red   (Vertex 0)
-    1.0f, 0.0f, 0.0f,  // Red   (Vertex 1)
-    0.0f, 1.0f, 0.0f,  // Green (Vertex 2)
-    0.0f, 1.0f, 0.0f,  // Green (Vertex 3)
-    0.0f, 0.0f, 1.0f,  // Blue  (Vertex 4)
-    0.0f, 0.0f, 1.0f,  // Blue  (Vertex 5)
-    1.0f, 1.0f, 0.0f,  // Yellow (Vertex 6)
-    1.0f, 1.0f, 0.0f   // Yellow (Vertex 7)
-};
 
     glCanvas->SetCurrent(*glContext);
     prepare3DViewport(0,0,getWidth(), getHeight());
@@ -193,32 +155,7 @@ GLfloat colors[] = {
     glTranslatef(transX,transY,transZ);  
     glRotatef(rotation, 1.0, 1.0, 1.0);
     glColor4f(1, 0, 0, 1);
- 
-  //    std::cout<<"Here 123";
 
- // std::cout<<"Here 0";
-// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
- //std::cout<<"Here";
- //glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), &indices[0], GL_STATIC_DRAW);
- // std::cout<<"Here 1";
-   // GLuint vertex_buffer; // Save this for later rendering
-  //  glGenBuffers(1, &vertex_buffer);
-  //  glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-// glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(indices),0,GL_STATIC_DRAW);
-  //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
-  //glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0,sizeof(indices), indices);
-    /*for (int i = 0; i < 6; i++) {   
-        glColor3fv(cubeColors[i]);
-        glBegin(GL_QUADS);
-        for (int j = 0; j< 4; j++) {      
-         
-        glVertex3fv(cubeVertices[i][j]);
-     
-    }
-    glEnd();
-    }  
-   glFlush();
-*/
 
    glEnableClientState(GL_VERTEX_ARRAY);
    glEnableClientState(GL_COLOR_ARRAY);
